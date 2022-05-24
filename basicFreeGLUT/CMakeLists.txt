@@ -20,6 +20,8 @@ elseif (MSVC) # Windows using microsoft visual code
     file(COPY shader.vert DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
     file(COPY bunny.obj DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
     file(COPY bunny.obj.mtl DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+    file(COPY res/3D_pattern_58/pattern_290/diffuse.tga DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/res/3D_pattern_58/pattern_290/)
+    file(COPY res/3D_pattern_58/pattern_292/diffuse.tga DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/res/3D_pattern_58/pattern_292/)
     # Let the user know where the working directory for the program goes
     message(STATUS "${executable_name} Working Directory at ${CMAKE_SOURCE_DIR}/${executable_name}")
 else() # Windows

@@ -38,8 +38,8 @@ else()
 endif()
 
 # Add Dev Image Lib
-#find_package(DevIL REQUIRED)
-#message(STATUS "DevIL included at ${IL_INCLUDE_DIR}")
+find_package(DevIL REQUIRED)
+message(STATUS "DevIL included at ${IL_INCLUDE_DIR}")
 
 # basicGLFW project
 add_subdirectory(basicGLFW)

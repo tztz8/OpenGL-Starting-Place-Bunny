@@ -2,10 +2,11 @@
 
 in vec4 Position;
 in vec3 Normal;
-in vec4 VertexColorOut;
+in vec2 TexCoord;
 
 uniform vec4 LightPosition;// Light position in eye coords.
 
+uniform sampler2D Tex1;
 
 out vec4 color;
 
@@ -14,6 +15,8 @@ void main() {
 
     vec3 s = normalize(vec3(LightPosition) - vec3(Position));
     float intensity = max(dot(s, Normal), 0.0);
+
+    vec4 VertexColorOut = texture( Tex1, TexCoord );
 
     if (intensity > 0.95) {
         color = vec4(vec3(VertexColorOut * 0.95), 1.0);

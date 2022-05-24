@@ -1,4 +1,4 @@
-# ![cube](readMeImges/cube.png) OpenGL-Starting-Place
+# ![cube](readMeImges/cube.png) OpenGL-Starting-Place (bunny)
 > ![OpenGL](readMeImges/OpenGL_LogoBug_32px_Nov17.png)OpenGL Starting Place, 
 > A Template to get started making ![OpenGL](readMeImges/OpenGL_LogoBug_32px_Nov17.png)opengl projects and assignments,
 > Mostly using ![c-programming](readMeImges/c-programming.png)c code in ![cpp](readMeImges/cpp.png)cpp files

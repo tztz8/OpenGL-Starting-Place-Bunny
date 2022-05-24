@@ -12,6 +12,7 @@
 #include <cstring>
 #include <map>
 #include <cctype>
+#include <string>
 
 // Include GLEW
 #include <GL/glew.h>
@@ -19,8 +20,8 @@
 // Include GLFW
 #include <GLFW/glfw3.h>
 
-// image lib (cscd377)
-//#include <IL/il.h>
+// image lib
+#include <IL/il.h>
 //#include <IL/ilu.h>
 //#include <IL/ilut.h>
 
@@ -140,6 +141,13 @@ GLint light_position_loc;
  * Angle used for rotating the view (camera)
  */
 GLfloat rotateAngle = 0.0f;
+
+/* Class GLM object*/
+GLMmodel* objmodel = nullptr;
+GLuint objmodel_vao, objmodel_vbo, objmodel_ebo;
+GLuint imageTexID;
+
+GLuint image2TexID;
 
 //          --- Pre-Def Methods ---
 
@@ -288,63 +296,190 @@ GLuint initShaders(const char* v_shader, const char* f_shader) {
 
 }
 
-///**
-// * Load Texture
-// * @note code from Yasmin and commit and some modification make by Timbre Freeman
-// * @note (used devil to load the image)
-// * @note do not forget to uncommitted the include lib at the top and uncommitted the setup in main
-// * @param filename path to image file
-// * @return GL Texture ID
-// */
-//unsigned int loadTexture(const char* filename) {
-//    if (devILIsSetup) {
-//        ILboolean success;
-//        unsigned int imageID;
-//        ilGenImages(1, &imageID);
-//
-//        ilBindImage(imageID); /* Binding of DevIL image name */
-//        ilEnable(IL_ORIGIN_SET);
-//        ilOriginFunc(IL_ORIGIN_LOWER_LEFT);
-//        success = ilLoadImage((ILstring)filename);
-//
-//        if (!success) {
-//            fprintf(stderr, "Error: loadTexture: Couldn't load the following texture file: %s\n", filename);
-//            // The operation was not sucessfull hence free image and texture
-//            ilDeleteImages(1, &imageID);
-//            tellWindowToClose();
-//            return 0;
-//        }
-//
-//        ilConvertImage(IL_RGBA, IL_UNSIGNED_BYTE);
-//
-//        GLuint tid;
-//        glGenTextures(1, &tid);
-//        glBindTexture(GL_TEXTURE_2D, tid);
-//        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, ilGetInteger(IL_IMAGE_WIDTH), ilGetInteger(IL_IMAGE_HEIGHT), 0,
-//                     GL_RGBA, GL_UNSIGNED_BYTE, ilGetData());
-//
-//        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-//        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-//
-//        glBindTexture(GL_TEXTURE_2D, 0);
-//
-//        /* Because we have already copied image data into texture data
-//        we can release memory used by image. */
-//
-//        ilDeleteImages(1, &imageID);
-//        fprintf(stdout, "Info: loadTexture: \"%s\" is ready\n", filename);
-//        return tid;
-//    } else {
-//        fprintf(stderr, "Error: loadTexture: DevIL is not setup\n");
-//        tellWindowToClose();
-//        return 0;
-//    }
-//}
+/**
+ * Load Texture
+ * @note code from Yasmin and commit and some modification make by Timbre Freeman
+ * @note (used devil to load the image)
+ * @note do not forget to uncommitted the include lib at the top and uncommitted the setup in main
+ * @param filename path to image file
+ * @return GL Texture ID
+ */
+unsigned int loadTexture(const char* filename) {
+    if (devILIsSetup) {
+        ILboolean success;
+        unsigned int imageID;
+        ilGenImages(1, &imageID);
+
+        ilBindImage(imageID); /* Binding of DevIL image name */
+        ilEnable(IL_ORIGIN_SET);
+        ilOriginFunc(IL_ORIGIN_LOWER_LEFT);
+        success = ilLoadImage((ILstring)filename);
+
+        if (!success) {
+            fprintf(stderr, "Error: loadTexture: Couldn't load the following texture file: %s\n", filename);
+            // The operation was not sucessfull hence free image and texture
+            ilDeleteImages(1, &imageID);
+            tellWindowToClose();
+            return 0;
+        }
+
+        ilConvertImage(IL_RGBA, IL_UNSIGNED_BYTE);
+
+        GLuint tid;
+        glGenTextures(1, &tid);
+        glBindTexture(GL_TEXTURE_2D, tid);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, ilGetInteger(IL_IMAGE_WIDTH), ilGetInteger(IL_IMAGE_HEIGHT), 0,
+                     GL_RGBA, GL_UNSIGNED_BYTE, ilGetData());
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+        glBindTexture(GL_TEXTURE_2D, 0);
+
+        /* Because we have already copied image data into texture data
+        we can release memory used by image. */
+
+        ilDeleteImages(1, &imageID);
+        fprintf(stdout, "Info: loadTexture: \"%s\" is ready\n", filename);
+        return tid;
+    } else {
+        fprintf(stderr, "Error: loadTexture: DevIL is not setup\n");
+        tellWindowToClose();
+        return 0;
+    }
+}
+
+/**
+ * Update All The Vertex Normals
+ * @param vertices the vertices used to cal the norms
+ * @param norms the norms that will be updated (WARNING the data will be overridden)
+ * @param indices to know which vertices used to cal the norms
+ * @param numNormals the number of normals
+ * @param numIndices the number of indices
+ * @warning the data in norms will be overridden
+ */
+void updateVertexNormals(vec3* vertices, vec3* norms, const GLuint* indices,
+                         GLuint numNormals, GLuint numIndices) {
+
+    glm::vec3 p1, p2, p3, n;
+
+    for (int i = 0; i < numNormals; i++) {
+        norms[i] = glm::vec3(0.0, 0.0, 0.0);
+    }
+
+    for (int index = 0; index < numIndices; index+=3) {
+
+        p1 = vertices[indices[index + 0]];
+        p2 = vertices[indices[index + 1]];
+        p3 = vertices[indices[index + 2]];
+
+        n = normalize(cross((p2 - p1), (p3 - p1)));
+
+        norms[indices[index + 0]] += n;
+        norms[indices[index + 1]] += n;
+        norms[indices[index + 2]] += n;
+    }
+
+    for (int i = 0; i < numNormals; i++) {
+        norms[i] = glm::normalize(norms[i]);
+    }
+}
+
+/**
+ * Center and make the model fit in a -1 to 1 box
+ * @param vertices the vertices to update
+ * @param numVertices the number of vertices
+ * @warning the data in vertices will be overridden
+ */
+void unitizeModel(glm::vec3 vertices[], GLuint numVertices) {
+    // Step 1: Compute the maximum and minimum of x, y, and z
+    // coordinates of the model’s vertices.
+    float min_x, max_x, min_y, max_y, min_z, max_z;
+    min_x = max_x = vertices[0].x;
+    min_y = max_y = vertices[0].y;
+    min_z = max_z = vertices[0].z;
+
+    // finding the min and max for xyz
+    for (int i = 0; i < numVertices; ++i) {
+        glm::vec3 vertex = vertices[i];
+        if (vertex.x < min_x) {
+            min_x = vertex.x;
+        } else if (vertex.x > max_x) {
+            max_x = vertex.x;
+        }
+
+        if (vertex.y < min_y) {
+            min_y = vertex.y;
+        } else if (vertex.y > max_y) {
+            max_y = vertex.y;
+        }
+
+        if (vertex.z < min_z) {
+            min_z = vertex.z;
+        } else if (vertex.z > max_z) {
+            max_z = vertex.z;
+        }
+    }
+
+    // Step 2: Calculate the center as follows:
+    float center_x = (max_x + min_x) / 2;
+    float center_y = (max_y + min_y) / 2;
+    float center_z = (max_z + min_z) / 2;
+
+    // Step 3: Calculate the width, height, and depth of the model.
+    float width = std::abs(max_x - min_x);
+    float height = std::abs(max_y - min_y);
+    float depth = std::abs(max_z - min_z);
+
+    // Step 4: Calculate the scale factor!.
+    float scale = glm::max(depth, glm::max(width, height));
+
+    for (int i = 0; i < numVertices; i++) {
+        // Step 5: Center the model at the origin!
+        // moving points to center of the screen
+        vertices[i].x -= center_x;
+        vertices[i].y -= center_y;
+        vertices[i].z -= center_z;
+
+        // Step 6:Divide each coordinate by the scale factor determined
+        // in Step 4! This will fit the model in a bounding box of width,
+        // height, and depth 1 each extending from -0.5 to +0.5
+        // scale the model to fit in a box whose width, height, and depth extend from -0.5 to 0.5.
+        vertices[i].x /= scale;
+        vertices[i].y /= scale;
+        vertices[i].z /= scale;
+
+        // Step 7: Multiply each coordinate by 2.0! This will fit the
+        // model in a bounding box of width, height, and depth 2 each
+        // extending from -1.0 to +1.0
+
+        //scale the model to fit in a box whose width, height, and depth extend from -1.0 to 1.0.
+        vertices[i].x *= 2;
+        vertices[i].y *= 2;
+        vertices[i].z *= 2;
+    }
+}
 
 /**
  * Called set setup open gl things (for example making the models)
  */
 void Initialize(){
+
+    // Get the bunny model
+    if (!objmodel) {
+        std::string filename = "bunny.obj";
+        objmodel = glmReadOBJ(filename.c_str());
+        if (!objmodel) {
+            fprintf(stderr, "ERROR: OBJ file does not exist \n");
+            exit(EXIT_FAILURE);
+        } else {
+            fprintf(stdout, "Info: Initialize: OBJ file \"%s\" loaded\n", filename.c_str());
+        }
+        unitizeModel(objmodel->vertices, objmodel->numvertices);
+        updateVertexNormals(objmodel->vertices, objmodel->normals,
+                            objmodel->indices, objmodel->numnormals, objmodel->numindices);
+    }
+
     // Create the program for rendering the model
     program = initShaders("shader.vert", "shader.frag");
 
@@ -362,9 +497,56 @@ void Initialize(){
     matrix_loc = glGetUniformLocation(program, "model_matrix");
     projection_matrix_loc = glGetUniformLocation(program, "projection_matrix");
     light_position_loc = glGetUniformLocation(program, "LightPosition");
+    glUniform1i(glGetUniformLocation(program, "Tex1"), 0);
+
+    imageTexID = loadTexture("res/3D_pattern_58/pattern_290/diffuse.tga");
+    image2TexID = loadTexture("res/3D_pattern_58/pattern_292/diffuse.tga");
 
     // Set Clear Color (background color)
     glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+
+    // Setup bunny in GPU
+    if (objmodel) {
+        // VertexArray
+        glGenVertexArrays(1, &objmodel_vao);
+        glBindVertexArray(objmodel_vao);
+        GLuint offset = 0;
+        glGenBuffers(1, &objmodel_vbo);
+
+        glBindBuffer(GL_ARRAY_BUFFER, objmodel_vbo);
+        glBufferData(GL_ARRAY_BUFFER, static_cast<GLsizeiptr>(
+                             sizeof(glm::vec3) * (objmodel->numvertices) + // Vertex position
+                             sizeof(glm::vec3) * (objmodel->numvertices) + // Vertex normal
+                             sizeof(glm::vec2) * (objmodel->numvertices)), // Vertex textures
+                     nullptr, GL_DYNAMIC_DRAW);
+        glBufferSubData(GL_ARRAY_BUFFER, offset,
+                        static_cast<GLsizeiptr>(sizeof(glm::vec3) * (objmodel->numvertices)), // Vertex position
+                        objmodel->vertices);
+        glVertexAttribPointer((GLuint)0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+        glEnableVertexAttribArray(0);  // Vertex position
+
+        offset += sizeof(glm::vec3) * (objmodel->numvertices); // Vertex position
+        glBufferSubData(GL_ARRAY_BUFFER, offset,
+                        static_cast<GLsizeiptr>(sizeof(glm::vec3) * (objmodel->numvertices)), // Vertex normal
+                        objmodel->normals);
+        glVertexAttribPointer((GLuint)1, 3, GL_FLOAT, GL_FALSE, 0, (GLvoid*)(sizeof(glm::vec3) * (objmodel->numvertices)));
+        glEnableVertexAttribArray(1);  // Vertex normal
+
+        offset += sizeof(glm::vec3) * (objmodel->numvertices); // Vertex normal
+        glBufferSubData(GL_ARRAY_BUFFER, offset,
+                        static_cast<GLsizeiptr>(sizeof(glm::vec2) * (objmodel->numvertices)), // Vertex textures
+                        objmodel->textures);
+        glVertexAttribPointer((GLuint)2, 2, GL_FLOAT, GL_FALSE, 0, (GLvoid*)(sizeof(glm::vec3) * (objmodel->numvertices + objmodel->numvertices)));
+        glEnableVertexAttribArray(2);  // Vertex textures
+
+        glGenBuffers(1, &objmodel_ebo);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, objmodel_ebo);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER,
+                     static_cast<GLsizeiptr>(sizeof(GLuint) * (objmodel->numindices)), // Indices
+                     objmodel->indices, GL_STATIC_DRAW);
+
+        glBindVertexArray(0);
+    }
 
     // setup Cube
     createCube();
@@ -431,14 +613,26 @@ void Display() {
     projection_matrix = glm::perspective(glm::radians(45.0f), aspect, 0.3f, 100.0f);
     glUniformMatrix4fv(projection_matrix_loc, 1, GL_FALSE, (GLfloat*)&projection_matrix[0]);
 
-    // Draw things
+    // ---- Draw things ----
+
+    // Draw Bunny
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, imageTexID);
+    glBindVertexArray(objmodel_vao);
+    model_matrix = glm::scale(glm::mat4(1.0f), glm::vec3(2.0f, 2.0f, 2.0f));
+    glUniformMatrix4fv(matrix_loc, 1, GL_FALSE, (GLfloat*)&model_matrix[0]);
+    glDrawElements(GL_TRIANGLES,objmodel->numindices, GL_UNSIGNED_INT, nullptr);
 
     // Draw Cube
-    model_matrix = glm::scale(glm::mat4(1.0f), glm::vec3(2.0f, 2.0f, 2.0f));
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, image2TexID);
+    model_matrix =
+            glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, -4.0f, 0.0f)) *
+            glm::scale(glm::mat4(1.0f), glm::vec3(4.0f, 4.0f, 4.0f));
     glUniformMatrix4fv(matrix_loc, 1, GL_FALSE, (GLfloat*)&model_matrix[0]);
     drawCube();
 
-    // End of Draw things
+    // ---- End of Draw things ----
     glFlush();
 }
 
@@ -591,9 +785,9 @@ int main() {
     }
 
     // Initialize devil
-//    fprintf(stdout,"Info: Initialize DevIL\n");
-//    ilInit();
-//    devILIsSetup = true;
+    fprintf(stdout,"Info: Initialize DevIL\n");
+    ilInit();
+    devILIsSetup = true;
 
     // Initialize GLEW
     fprintf(stdout,"Info: Initialize GLEW\n");
