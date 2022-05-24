@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(OpenGL-Starting-Place)
+project(OpenGL-Starting-Place-Bunny)
 
 # Set the version of CPP we are using
 set(CMAKE_CXX_STANDARD 17)
