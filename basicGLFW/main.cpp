@@ -13,6 +13,7 @@
 #include <map>
 #include <cctype>
 #include <string>
+#include <iostream>
 
 // Include GLEW
 #include <GL/glew.h>
@@ -39,6 +40,8 @@
 
 // h file of this assignment
 #include "Cube.h"
+
+#define OPENGL_DEBUG_FOR_GLFW true
 
 //          --- Filled's ---
 
@@ -726,6 +729,84 @@ void tellWindowToClose() {
     exitWindowFlag = true;
 }
 
+#if OPENGL_DEBUG_FOR_GLFW
+/**
+ * OpenGL Debug message callback to output
+ * @param source Where the error came from
+ * @param type The type of error
+ * @param id the id of the error
+ * @param severity how bad the error was
+ * @param length Unknown (my guest is the size of message)
+ * @param message the message of the error
+ * @param userParam Unknown
+ * @see https://learnopengl.com/In-Practice/Debugging
+ * @warning if severity is high tell glfw to close
+ */
+void APIENTRY glDebugOutput(GLenum source,
+                            GLenum type,
+                            unsigned int id,
+                            GLenum severity,
+                            GLsizei length,
+                            const char *message,
+                            const void *userParam)
+{
+    // ignore non-significant error/warning codes
+    if(id == 131169 || id == 131185 || id == 131218 || id == 131204) return;
+    std::cout << "Info: OpenGL Debug incoming (ID:" << id << ")" << std::endl;
+
+    std::string sourceMessage;
+    std::string typeMessage;
+    std::string severityMessage;
+
+    switch (source)
+    {
+        case GL_DEBUG_SOURCE_API:             sourceMessage = "Source: API"; break;
+        case GL_DEBUG_SOURCE_WINDOW_SYSTEM:   sourceMessage = "Source: Window System"; break;
+        case GL_DEBUG_SOURCE_SHADER_COMPILER: sourceMessage = "Source: Shader Compiler"; break;
+        case GL_DEBUG_SOURCE_THIRD_PARTY:     sourceMessage = "Source: Third Party"; break;
+        case GL_DEBUG_SOURCE_APPLICATION:     sourceMessage = "Source: Application"; break;
+        case GL_DEBUG_SOURCE_OTHER:           sourceMessage = "Source: Other"; break;
+        default:                              sourceMessage = "Source: Unknown"; break;
+    }
+
+    switch (type)
+    {
+        case GL_DEBUG_TYPE_ERROR:               typeMessage = "Type: Error"; break;
+        case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR: typeMessage = "Type: Deprecated Behaviour"; break;
+        case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR:  typeMessage = "Type: Undefined Behaviour"; break;
+        case GL_DEBUG_TYPE_PORTABILITY:         typeMessage = "Type: Portability"; break;
+        case GL_DEBUG_TYPE_PERFORMANCE:         typeMessage = "Type: Performance"; break;
+        case GL_DEBUG_TYPE_MARKER:              typeMessage = "Type: Marker"; break;
+        case GL_DEBUG_TYPE_PUSH_GROUP:          typeMessage = "Type: Push Group"; break;
+        case GL_DEBUG_TYPE_POP_GROUP:           typeMessage = "Type: Pop Group"; break;
+        case GL_DEBUG_TYPE_OTHER:               typeMessage = "Type: Other"; break;
+        default:                                typeMessage = "Type: Unknown"; break;
+    }
+
+    FILE* output;
+
+    switch (severity)
+    {
+        case GL_DEBUG_SEVERITY_HIGH:         severityMessage = "Severity: high"; output = stderr; break;
+        case GL_DEBUG_SEVERITY_MEDIUM:       severityMessage = "Severity: medium"; output = stderr; break;
+        case GL_DEBUG_SEVERITY_LOW:          severityMessage = "Severity: low"; output = stdout; break;
+        case GL_DEBUG_SEVERITY_NOTIFICATION: severityMessage = "Severity: notification"; output = stdout; break;
+        default:                             severityMessage = "Severity: Unknown"; output = stderr; break;
+    }
+
+    fprintf(output, "-------OpenGL Debug--------\n"
+                    "Debug message (ID:%u): %s\n"
+                    "%s\n%s\n%s\n\n",
+            id, message,
+            sourceMessage.c_str(),
+            typeMessage.c_str(),
+            severityMessage.c_str());
+    if (severity == GL_DEBUG_SEVERITY_HIGH) {
+        tellWindowToClose();
+    }
+}
+#endif
+
 // ------------------ Main ---------------------------
 
 /**
@@ -749,6 +830,9 @@ int main() {
     glfwWindowHint(GLFW_SCALE_TO_MONITOR, GLFW_TRUE);
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // To make macOS happy; should not be needed
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE);
+#if OPENGL_DEBUG_FOR_GLFW
+    glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);
+#endif
 
     // Open a window and create its OpenGL context
     fprintf(stdout, "Info: Open a window and create its OpenGL context\n");
@@ -796,6 +880,18 @@ int main() {
         glfwTerminate();
         return EXIT_FAILURE;
     }
+
+#if OPENGL_DEBUG_FOR_GLFW
+    fprintf(stdout,"Info: Initialize GL Debug Output\n");
+    int flags; glGetIntegerv(GL_CONTEXT_FLAGS, &flags);
+    if (flags & GL_CONTEXT_FLAG_DEBUG_BIT)
+    {
+        glEnable(GL_DEBUG_OUTPUT);
+        glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+        glDebugMessageCallback(glDebugOutput, nullptr);
+        glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
+    }
+#endif
 
     fprintf(stdout, "Info: Running Initialize method\n");
     Initialize();
