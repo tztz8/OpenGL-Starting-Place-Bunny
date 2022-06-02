@@ -29,6 +29,10 @@
 #include <glm/mat4x4.hpp> // glm::mat4
 #include <glm/gtc/matrix_transform.hpp> // glm::translate, glm::rotate, glm::scale, glm::perspective
 
+#define OPENGL_DEBUG_FOR_GLUT true
+#include "main.h"
+#include "OpenGLHelperMethods.h"
+
 // h file of this assignment
 #include "Cube.h"
 
@@ -134,299 +138,6 @@ GLuint image2TexID;
 
 
 //          --- Methods ---
-
-/**
- * Read A file and out put a file a char list
- * @note code from Yasmin and commit and some modification make by Timbre Freeman
- * @param filename path to the file
- * @return pointer to a char list (String)
- */
-char* ReadFile(const char* filename) {
-
-    FILE* infile;
-#ifdef WIN32
-    fopen_s(&infile, filename, "rb");
-#else
-    infile = fopen(filename, "rb");
-#endif
-
-
-    if (!infile) {
-        fprintf(stderr, "Error: ReadFile: Unable to open file %s\n", filename);
-        return nullptr;
-    }
-
-    fseek(infile, 0, SEEK_END);
-    int len = static_cast<int>(ftell(infile));
-    fseek(infile, 0, SEEK_SET);
-    char* source = (char*)malloc(len + 1);
-    if (source == nullptr) {
-        fprintf(stderr, "Error: ReadFile: Unable to get memory to read file %s\n", filename);
-        return nullptr;
-    }
-    fread(source, 1, len, infile);
-    fclose(infile);
-    source[len] = 0;
-    fprintf(stdout, "Info: ReadFile: \"%s\" is ready\n", filename);
-    return (source);
-
-}
-
-/**
- * Initialize Shaders
- * @note code from Yasmin and commit and some modification make by Timbre Freeman
- * @param v_shader the vertex shader path
- * @param f_shader the fragment shader path
- * @return a gl program object
- */
-GLuint initShaders(const char* v_shader, const char* f_shader) {
-
-    GLuint p = glCreateProgram();
-
-    GLuint v = glCreateShader(GL_VERTEX_SHADER);
-    GLuint f = glCreateShader(GL_FRAGMENT_SHADER);
-
-    const char * vs = ReadFile(v_shader);
-    const char * fs = ReadFile(f_shader);
-
-    glShaderSource(v, 1, &vs, nullptr);
-    glShaderSource(f, 1, &fs, nullptr);
-
-    free((char*)vs);
-    free((char*)fs);
-
-    glCompileShader(v);
-
-    GLint compiled;
-
-    glGetShaderiv(v, GL_COMPILE_STATUS, &compiled);
-    if (!compiled) {
-        GLsizei len;
-        glGetShaderiv(v, GL_INFO_LOG_LENGTH, &len);
-
-        char* log = (char*)malloc(len + 1);
-
-        if (log == nullptr) {
-            fprintf(stderr, "Error: initShaders: Was not able to get memory to get error code for compiled shader\n");
-            exit(EXIT_FAILURE);
-        }
-
-        glGetShaderInfoLog(v, len, &len, log);
-
-        fprintf(stderr, "Error: initShaders: Vertex Shader compilation failed: %s\n", log);
-
-        free(log);
-    }
-
-    glCompileShader(f);
-    glGetShaderiv(f, GL_COMPILE_STATUS, &compiled);
-
-    if (!compiled) {
-
-        GLsizei len;
-        glGetShaderiv(f, GL_INFO_LOG_LENGTH, &len);
-        char* log = (char*)malloc(len + 1);
-
-        if (log == nullptr) {
-            fprintf(stderr, "Error: initShaders: Was not able to get memory to get error code for compiled shader\n");
-            exit(EXIT_FAILURE);
-        }
-
-        glGetShaderInfoLog(f, len, &len, log);
-        fprintf(stderr, "Error: initShaders: Vertex Shader compilation failed: %s\n", log);
-        free(log);
-    }
-
-    glAttachShader(p, v);
-    glAttachShader(p, f);
-    glLinkProgram(p);
-    GLint linked;
-
-    glGetProgramiv(p, GL_LINK_STATUS, &linked);
-
-    if (!linked) {
-
-        GLsizei len;
-        glGetProgramiv(p, GL_INFO_LOG_LENGTH, &len);
-        char* log = (char*)malloc(len + 1);
-
-        if (log == nullptr) {
-            fprintf(stderr, "Error: initShaders: Was not able to get memory to get error code for compiled shader\n");
-            exit(EXIT_FAILURE);
-        }
-
-        glGetProgramInfoLog(p, len, &len, log);
-        fprintf(stderr, "Error: initShaders: Shader linking failed: %s\n", log);
-        free(log);
-    }
-
-    glUseProgram(p);
-
-    return p;
-
-}
-
-/**
- * Load Texture
- * @note code from Yasmin and commit and some modification make by Timbre Freeman
- * @note (used devil to load the image)
- * @note do not forget to uncommitted the include lib at the top and uncommitted the setup in main
- * @param filename path to image file
- * @return GL Texture ID
- */
-unsigned int loadTexture(const char* filename) {
-    if (devILIsSetup) {
-        ILboolean success;
-        unsigned int imageID;
-        ilGenImages(1, &imageID);
-
-        ilBindImage(imageID); /* Binding of DevIL image name */
-        ilEnable(IL_ORIGIN_SET);
-        ilOriginFunc(IL_ORIGIN_LOWER_LEFT);
-        success = ilLoadImage((ILstring)filename);
-
-        if (!success) {
-            fprintf(stderr, "Error: loadTexture: Couldn't load the following texture file: %s\n", filename);
-            // The operation was not sucessfull hence free image and texture
-            ilDeleteImages(1, &imageID);
-            return 0;
-        }
-
-        ilConvertImage(IL_RGBA, IL_UNSIGNED_BYTE);
-
-        GLuint tid;
-        glGenTextures(1, &tid);
-        glBindTexture(GL_TEXTURE_2D, tid);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, ilGetInteger(IL_IMAGE_WIDTH), ilGetInteger(IL_IMAGE_HEIGHT), 0,
-                     GL_RGBA, GL_UNSIGNED_BYTE, ilGetData());
-
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-
-        glBindTexture(GL_TEXTURE_2D, 0);
-
-        /* Because we have already copied image data into texture data
-        we can release memory used by image. */
-
-        ilDeleteImages(1, &imageID);
-        fprintf(stdout, "Info: loadTexture: \"%s\" is ready\n", filename);
-        return tid;
-    } else {
-        fprintf(stderr, "Error: loadTexture: DevIL is not setup\n");
-        return 0;
-    }
-}
-
-/**
- * Update All The Vertex Normals
- * @param vertices the vertices used to cal the norms
- * @param norms the norms that will be updated (WARNING the data will be overridden)
- * @param indices to know which vertices used to cal the norms
- * @param numNormals the number of normals
- * @param numIndices the number of indices
- * @warning the data in norms will be overridden
- */
-void updateVertexNormals(vec3* vertices, vec3* norms, const GLuint* indices,
-                         GLuint numNormals, GLuint numIndices) {
-
-    glm::vec3 p1, p2, p3, n;
-
-    for (int i = 0; i < numNormals; i++) {
-        norms[i] = glm::vec3(0.0, 0.0, 0.0);
-    }
-
-    for (int index = 0; index < numIndices; index+=3) {
-
-        p1 = vertices[indices[index + 0]];
-        p2 = vertices[indices[index + 1]];
-        p3 = vertices[indices[index + 2]];
-
-        n = normalize(cross((p2 - p1), (p3 - p1)));
-
-        norms[indices[index + 0]] += n;
-        norms[indices[index + 1]] += n;
-        norms[indices[index + 2]] += n;
-    }
-
-    for (int i = 0; i < numNormals; i++) {
-        norms[i] = glm::normalize(norms[i]);
-    }
-}
-
-/**
- * Center and make the model fit in a -1 to 1 box
- * @param vertices the vertices to update
- * @param numVertices the number of vertices
- * @warning the data in vertices will be overridden
- */
-void unitizeModel(glm::vec3 vertices[], GLuint numVertices) {
-    // Step 1: Compute the maximum and minimum of x, y, and z
-    // coordinates of the model’s vertices.
-    float min_x, max_x, min_y, max_y, min_z, max_z;
-    min_x = max_x = vertices[0].x;
-    min_y = max_y = vertices[0].y;
-    min_z = max_z = vertices[0].z;
-
-    // finding the min and max for xyz
-    for (int i = 0; i < numVertices; ++i) {
-        glm::vec3 vertex = vertices[i];
-        if (vertex.x < min_x) {
-            min_x = vertex.x;
-        } else if (vertex.x > max_x) {
-            max_x = vertex.x;
-        }
-
-        if (vertex.y < min_y) {
-            min_y = vertex.y;
-        } else if (vertex.y > max_y) {
-            max_y = vertex.y;
-        }
-
-        if (vertex.z < min_z) {
-            min_z = vertex.z;
-        } else if (vertex.z > max_z) {
-            max_z = vertex.z;
-        }
-    }
-
-    // Step 2: Calculate the center as follows:
-    float center_x = (max_x + min_x) / 2;
-    float center_y = (max_y + min_y) / 2;
-    float center_z = (max_z + min_z) / 2;
-
-    // Step 3: Calculate the width, height, and depth of the model.
-    float width = std::abs(max_x - min_x);
-    float height = std::abs(max_y - min_y);
-    float depth = std::abs(max_z - min_z);
-
-    // Step 4: Calculate the scale factor!.
-    float scale = glm::max(depth, glm::max(width, height));
-
-    for (int i = 0; i < numVertices; i++) {
-        // Step 5: Center the model at the origin!
-        // moving points to center of the screen
-        vertices[i].x -= center_x;
-        vertices[i].y -= center_y;
-        vertices[i].z -= center_z;
-
-        // Step 6:Divide each coordinate by the scale factor determined
-        // in Step 4! This will fit the model in a bounding box of width,
-        // height, and depth 1 each extending from -0.5 to +0.5
-        // scale the model to fit in a box whose width, height, and depth extend from -0.5 to 0.5.
-        vertices[i].x /= scale;
-        vertices[i].y /= scale;
-        vertices[i].z /= scale;
-
-        // Step 7: Multiply each coordinate by 2.0! This will fit the
-        // model in a bounding box of width, height, and depth 2 each
-        // extending from -1.0 to +1.0
-
-        //scale the model to fit in a box whose width, height, and depth extend from -1.0 to 1.0.
-        vertices[i].x *= 2;
-        vertices[i].y *= 2;
-        vertices[i].z *= 2;
-    }
-}
 
 /**
  * Called set setup open gl things (for example making the models)
@@ -679,6 +390,10 @@ void rotate(int n) {
 int main(int argc, char** argv){
     fprintf(stdout, "Info: Initialise GLUT\n");
     glutInit(&argc, argv);
+#if OPENGL_DEBUG_FOR_GLUT
+    fprintf(stdout, "Info: Setting Init Context Flag Debug\n");
+    glutInitContextFlags(GLUT_DEBUG);
+#endif
     fprintf(stdout, "Info: Setting GLUT Display modes\n");
     glutInitDisplayMode(GLUT_RGBA|GLUT_DOUBLE|GLUT_DEPTH|GLUT_STENCIL);
     fprintf(stdout, "Info: Initialise a window size\n");
@@ -692,6 +407,20 @@ int main(int argc, char** argv){
         fprintf(stderr, "Error: Failed to initialize GLEW\n");
         return EXIT_FAILURE;
     }
+
+#if OPENGL_DEBUG_FOR_GLUT
+    fprintf(stdout,"Info: Initialize GL Debug Output\n");
+    if (glDebugMessageCallback)
+    {
+        glEnable(GL_DEBUG_OUTPUT);
+        glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+        glDebugMessageCallback(glDebugOutput, nullptr);
+        GLuint unusedIds = 0;
+        glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, &unusedIds, GL_TRUE);
+    } else {
+        fprintf(stderr, "Error: Opengl Debug not available\n");
+    }
+#endif
 
     fprintf(stdout,"Info: Initialize DevIL\n");
     ilInit();
