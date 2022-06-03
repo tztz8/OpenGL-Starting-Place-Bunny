@@ -5,7 +5,7 @@ set(executable_name basicFreeGLUT)
 add_executable(${executable_name}
         res/icon/programIcon.rc # for in windows add a icon to the exe file and for freeglut on windows to add a icon to window
         GLM.cpp GLM.h # The Modified GLM lib
-        OpenGLHelperMethods.h # OpenGl Helper Methods like load shaders
+        OpenGLHelperMethods.cpp OpenGLHelperMethods.h # OpenGl Helper Methods like load shaders
         main.cpp main.h# main (start of our executable)
         Cube.cpp Cube.h) # any other files (code files and not shaders) for our project
 

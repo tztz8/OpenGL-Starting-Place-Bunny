@@ -13,7 +13,6 @@
 #include <map>
 #include <cctype>
 #include <string>
-#include <iostream>
 
 // Include GLEW
 #include <GL/glew.h>
@@ -38,7 +37,6 @@
 #include <glm/mat4x4.hpp> // glm::mat4
 #include <glm/gtc/matrix_transform.hpp> // glm::translate, glm::rotate, glm::scale, glm::perspective
 
-#define OPENGL_DEBUG_FOR_GLFW true
 #include "main.h"
 #include "OpenGLHelperMethods.h"
 

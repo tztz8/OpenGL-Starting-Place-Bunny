@@ -1,34 +1,40 @@
 #include "Cube.h"
 
+// Math Lib
+#define GLM_FORCE_RADIANS
+#include <glm/vec2.hpp>
+#include <glm/vec3.hpp>
+#include <glm/vec4.hpp>
+
 unsigned int cube_vao;
 
 void createCube() {
     float side = 0.5f;
 
-    GLfloat cube_vertices[] = {side, side, side, 1.0f,  // v0,v1,v2,v3 (front)
-                               -side, side, side, 1.0f,
-                               -side, -side, side, 1.0f,
-                               side, -side, side, 1.0f,
-                               side, side, side, 1.0f,  // v0,v3,v4,v5 (right)
-                               side, -side, side, 1.0f,
-                               side, -side, -side, 1.0f,
-                               side, side, -side, 1.0f,
-                               side, side, side, 1.0f,  // v0,v5,v6,v1 (top)
-                               side, side, -side, 1.0f,
-                               -side, side, -side, 1.0f,
-                               -side, side, side, 1.0f,
-                               -side, side, side, 1.0f, // v1,v6,v7,v2 (left)
-                               -side, side, -side, 1.0f,
-                               -side, -side, -side, 1.0f,
-                               -side, -side, side, 1.0f,
-                               -side, -side, -side, 1.0f,// v7,v4,v3,v2 (bottom)
-                               side, -side, -side, 1.0f,
-                               side, -side, side, 1.0f,
-                               -side, -side, side, 1.0f,
-                               side, -side, -side, 1.0f,// v4,v7,v6,v5 (back)
-                               -side, -side, -side, 1.0f,
-                               -side, side, -side, 1.0f,
-                               side, side, -side, 1.0f};
+    glm::vec4 cube_vertices[] = {{side, side, side, 1.0f},  // v0,v1,v2,v3 (front)
+                                 {-side, side, side, 1.0f},
+                                 {-side, -side, side, 1.0f},
+                                 {side, -side, side, 1.0f},
+                                 {side, side, side, 1.0f},  // v0,v3,v4,v5 (right)
+                                 {side, -side, side, 1.0f},
+                                 {side, -side, -side, 1.0f},
+                                 {side, side, -side, 1.0f},
+                                 {side, side, side, 1.0f},  // v0,v5,v6,v1 (top)
+                                 {side, side, -side, 1.0f},
+                                 {-side, side, -side, 1.0f},
+                                 {-side, side, side, 1.0f},
+                                 {-side, side, side, 1.0f}, // v1,v6,v7,v2 (left)
+                                 {-side, side, -side, 1.0f},
+                                 {-side, -side, -side, 1.0f},
+                                 {-side, -side, side, 1.0f},
+                                 {-side, -side, -side, 1.0f},// v7,v4,v3,v2 (bottom)
+                                 {side, -side, -side, 1.0f},
+                                 {side, -side, side, 1.0f},
+                                 {-side, -side, side, 1.0f},
+                                 {side, -side, -side, 1.0f},// v4,v7,v6,v5 (back)
+                                 {-side, -side, -side, 1.0f},
+                                 {-side, side, -side, 1.0f},
+                                 {side, side, -side, 1.0f}};
 
 
     GLushort cube_indices[] = {0, 1, 2, 2, 3, 0,      // front
@@ -38,72 +44,70 @@ void createCube() {
                                16, 17, 18, 18, 19, 16,      // bottom
                                20, 21, 22, 22, 23, 20};    // back
 
-    GLfloat cube_normals[6][4][3] = {
+    glm::vec3 cube_normals[6*4] = {
             // Front
-            0.0f, 0.0f, 1.0f,
-            0.0f, 0.0f, 1.0f,
-            0.0f, 0.0f, 1.0f,
-            0.0f, 0.0f, 1.0f,
+            {0.0f, 0.0f, 1.0f},
+            {0.0f, 0.0f, 1.0f},
+            {0.0f, 0.0f, 1.0f},
+            {0.0f, 0.0f, 1.0f},
             // Right
-            1.0f, 0.0f, 0.0f,
-            1.0f, 0.0f, 0.0f,
-            1.0f, 0.0f, 0.0f,
-            1.0f, 0.0f, 0.0f,
+            {1.0f, 0.0f, 0.0f},
+            {1.0f, 0.0f, 0.0f},
+            {1.0f, 0.0f, 0.0f},
+            {1.0f, 0.0f, 0.0f},
             // Top
-            0.0f, 1.0f, 0.0f,
-            0.0f, 1.0f, 0.0f,
-            0.0f, 1.0f, 0.0f,
-            0.0f, 1.0f, 0.0f,
+            {0.0f, 1.0f, 0.0f},
+            {0.0f, 1.0f, 0.0f},
+            {0.0f, 1.0f, 0.0f},
+            {0.0f, 1.0f, 0.0f},
             // Left
-            -1.0f, 0.0f, 0.0f,
-            -1.0f, 0.0f, 0.0f,
-            -1.0f, 0.0f, 0.0f,
-            -1.0f, 0.0f, 0.0f,
+            {-1.0f, 0.0f, 0.0f},
+            {-1.0f, 0.0f, 0.0f},
+            {-1.0f, 0.0f, 0.0f},
+            {-1.0f, 0.0f, 0.0f},
             // Bottom
-            0.0f, -1.0f, 0.0f,
-            0.0f, -1.0f, 0.0f,
-            0.0f, -1.0f, 0.0f,
-            0.0f, -1.0f, 0.0f,
+            {0.0f, -1.0f, 0.0f},
+            {0.0f, -1.0f, 0.0f},
+            {0.0f, -1.0f, 0.0f},
+            {0.0f, -1.0f, 0.0f},
             // Back
-            0.0f, 0.0f, -1.0f,
-            0.0f, 0.0f, -1.0f,
-            0.0f, 0.0f, -1.0f,
-            0.0f, 0.0f, -1.0f
+            {0.0f, 0.0f, -1.0f},
+            {0.0f, 0.0f, -1.0f},
+            {0.0f, 0.0f, -1.0f},
+            {0.0f, 0.0f, -1.0f}
     };
 
-    const int numOfVertices = sizeof(cube_vertices) / sizeof(GLfloat);
-
-    GLfloat cube_textures[] = { 0.75f, 2.0f/3.0f,  // v0,v1,v2,v3 (front)
-                                0.5f, 2.0f/3.0f,
-                                0.5f, 1.0f/3.0f,
-                                0.75f, 1.0f/3.0f,
+    glm::vec2 cube_textures[] = { {0.75f, 2.0f/3.0f},  // v0,v1,v2,v3 (front)
+                                  {0.5f, 2.0f/3.0f},
+                                  {0.5f, 1.0f/3.0f},
+                                  {0.75f, 1.0f/3.0f},
 
 
-                                0.75f, 2.0f/3.0f,  // v0,v3,v4,v5 (right)
-                                0.75f, 1.0f/3.0f,
-                                1.0f, 1.0f/3.0f,
-                                1.0f, 2.0f/3.0f,
+                                  {0.75f, 2.0f/3.0f},  // v0,v3,v4,v5 (right)
+                                  {0.75f, 1.0f/3.0f},
+                                  {1.0f, 1.0f/3.0f},
+                                  {1.0f, 2.0f/3.0f},
 
 
-                                0.75f, 2.0f/3.0f,  // v0,v5,v6,v1 (top)
-                                0.75f, 1.0f,
-                                0.5f, 1.0f,
-                                0.5f, 2.0f/3.0f,
+                                  {0.75f, 2.0f/3.0f},  // v0,v5,v6,v1 (top)
+                                  {0.75f, 1.0f},
+                                  {0.5f, 1.0f},
+                                  {0.5f, 2.0f/3.0f},
 
-                                0.5f, 2.0f/3.0f, // v1,v6,v7,v2 (left)
-                                0.25f, 2.0f/3.0f,
-                                0.25f, 1.0f/3.0f,
-                                0.5f, 1.0f/3.0f,
+                                  {0.5f, 2.0f/3.0f}, // v1,v6,v7,v2 (left)
+                                  {0.25f, 2.0f/3.0f},
+                                  {0.25f, 1.0f/3.0f},
+                                  {0.5f, 1.0f/3.0f},
 
-                                0.5f, 0.0f,// v7,v4,v3,v2 (bottom)
-                                0.75f, 0.0f,
-                                0.75f, 1.0f/3.0f,
-                                0.5f, 1.0f/3.0f,
+                                  {0.5f, 0.0f},// v7,v4,v3,v2 (bottom)
+                                  {0.75f, 0.0f},
+                                  {0.75f, 1.0f/3.0f},
+                                  {0.5f, 1.0f/3.0f},
 
-                                0.25f, 1.0f/3.0f,// v4,v7,v6,v5 (back)
-                                0.0f, 1.0f/3.0f,
-                                0.0f, 2.0f/3.0f,
-                                0.25f, 2.0f/3.0f };
+                                  {0.25f, 1.0f/3.0f},// v4,v7,v6,v5 (back)
+                                  {0.0f, 1.0f/3.0f},
+                                  {0.0f, 2.0f/3.0f},
+                                  {0.25f, 2.0f/3.0f} };
 
     glGenVertexArrays(1, &cube_vao);
     glBindVertexArray(cube_vao);
