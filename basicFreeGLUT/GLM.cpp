@@ -324,12 +324,12 @@ glmReadOBJ(const char* filename)
     glmFirstPass(model, file);
 
     /* allocate memory */
-    model->vertices = (vec3*)malloc(sizeof(vec3) * (model->numvertices ));
+    model->vertices = (glm::vec3*)malloc(sizeof(glm::vec3) * (model->numvertices ));
 
-    model->normals = (vec3*)malloc(sizeof(vec3) *(model->numvertices));
+    model->normals = (glm::vec3*)malloc(sizeof(glm::vec3) *(model->numvertices));
 
-    model->textures = (vec2*)malloc(sizeof(vec2) * (model->numtextures));
-    vec2 *ctextures = (vec2*)malloc(sizeof(vec2) * (model->numvertices));
+    model->textures = (glm::vec2*)malloc(sizeof(glm::vec2) * (model->numtextures));
+    glm::vec2 *ctextures = (glm::vec2*)malloc(sizeof(glm::vec2) * (model->numvertices));
 
     model->indices = (GLuint*)malloc(sizeof(GLuint) *(model->numindices));
     GLuint* tIndices = (GLuint*)malloc(sizeof(GLuint) * (model->numindices));
@@ -352,7 +352,7 @@ glmReadOBJ(const char* filename)
         ctextures[model->indices[i]] = model->textures[cIndices[i]];
     }
 
-    model->textures = (vec2*)malloc(sizeof(vec2) * (model->numvertices));
+    model->textures = (glm::vec2*)malloc(sizeof(glm::vec2) * (model->numvertices));
 
     for (i = 0; i < model->numvertices; i++)
         model->textures[i] = ctextures[i];

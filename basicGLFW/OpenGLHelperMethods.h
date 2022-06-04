@@ -1,7 +1,3 @@
-//
-// Created by tztz8 on 6/2/22.
-//
-
 #ifndef OPENGL_STARTING_PLACE_BUNNY_OPENGLHELPERMETHODS_H
 #define OPENGL_STARTING_PLACE_BUNNY_OPENGLHELPERMETHODS_H
 
@@ -76,7 +72,7 @@ unsigned int loadCubeMapTexture(
  * @param tex the texture coordinates
  * @warning tangents will be overwritten
  */
-void updateVertexTangents(glm::vec4* vertices, glm::vec3* normals, glm::vec4* tangents, int numvertices, int numindices,  const GLushort * indices, glm::vec2* tex);
+void updateVertexTangents(const glm::vec4* vertices, const glm::vec3* normals, glm::vec4* tangents, int numvertices, int numindices,  const GLushort * indices, const glm::vec2* tex);
 
 /**
  * Get the tangents from the vertices, normals, texture and indices
@@ -90,7 +86,7 @@ void updateVertexTangents(glm::vec4* vertices, glm::vec3* normals, glm::vec4* ta
  * @param tex the texture coordinates
  * @warning tangents will be overwritten
  */
-void updateVertexTangents(glm::vec4* vertices, glm::vec3* normals, glm::vec4* tangents, int numvertices, int numindices,  const GLuint * indices, glm::vec2* tex);
+void updateVertexTangents(const glm::vec4* vertices, const glm::vec3* normals, glm::vec4* tangents, int numvertices, int numindices,  const GLuint * indices, const glm::vec2* tex);
 
 /**
  * Update All The Vertex Normals
@@ -101,7 +97,7 @@ void updateVertexTangents(glm::vec4* vertices, glm::vec3* normals, glm::vec4* ta
  * @param numIndices the number of indices
  * @warning the data in norms will be overridden
  */
-void updateVertexNormals(glm::vec3* vertices, glm::vec3* norms, const GLuint* indices,
+void updateVertexNormals(const glm::vec3* vertices, glm::vec3* norms, const GLuint* indices,
                          GLuint numNormals, GLuint numIndices);
 
 /**

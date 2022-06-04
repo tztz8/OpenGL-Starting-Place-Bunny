@@ -301,7 +301,7 @@ void Display() {
 
     // update light_position_camera base off on both light position and view matrix
     light_position_camera = view_matrix * light_position;
-    glUniform4fv(light_position_loc, 1, (GLfloat*)&light_position_camera[0]);
+    glUniform4fv(light_position_loc, 1, &light_position_camera[0]);
 
     // update projection matrix (useful when the window resize)
     projection_matrix = glm::perspective(glm::radians(45.0f), aspect, 0.3f, 100.0f);

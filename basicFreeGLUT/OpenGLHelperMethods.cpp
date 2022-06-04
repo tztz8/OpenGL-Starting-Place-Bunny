@@ -1,6 +1,3 @@
-//
-// Created by tztz8 on 6/3/22.
-//
 //#include <cstdio>
 #include <cstdlib>
 #include <malloc.h>
@@ -40,6 +37,7 @@ char* ReadFile(const char* filename) {
     char* source = (char*)malloc(len + 1);
     if (source == nullptr) {
         fprintf(stderr, "Error: ReadFile: Unable to get memory to read file %s\n", filename);
+        fclose(infile);
         return nullptr;
     }
     fread(source, 1, len, infile);
@@ -167,7 +165,7 @@ unsigned int loadTexture(const char* filename) {
         ilBindImage(imageID); /* Binding of DevIL image name */
         ilEnable(IL_ORIGIN_SET);
         ilOriginFunc(IL_ORIGIN_LOWER_LEFT);
-        success = ilLoadImage((ILstring)filename);
+        success = ilLoadImage(filename);
 
         if (!success) {
             fprintf(stderr, "Error: loadTexture: Couldn't load the following texture file: %s\n", filename);
@@ -305,7 +303,7 @@ unsigned int loadCubeMapTexture(
  * @param tex the texture coordinates
  * @warning tangents will be overwritten
  */
-void updateVertexTangents(glm::vec4* vertices, glm::vec3* normals, glm::vec4* tangents, int numvertices, int numindices,  const GLushort* indices, glm::vec2* tex) {
+void updateVertexTangents(const glm::vec4* vertices, const glm::vec3* normals, glm::vec4* tangents, int numvertices, int numindices,  const GLushort* indices, const glm::vec2* tex) {
 
     glm::vec3* tan1 = (glm::vec3*)malloc(sizeof(glm::vec3) * numindices);
     glm::vec3* tan2 = (glm::vec3*)malloc(sizeof(glm::vec3) * numindices);
@@ -322,9 +320,9 @@ void updateVertexTangents(glm::vec4* vertices, glm::vec3* normals, glm::vec4* ta
         int index_1 = indices[i + 1];
         int index_2 = indices[i + 2];
 
-        glm::vec3 p1 = glm::vec3(vertices[index_0]);
-        glm::vec3 p2 = glm::vec3(vertices[index_1]);
-        glm::vec3 p3 = glm::vec3(vertices[index_2]);
+        glm::vec3 p1(vertices[index_0]);
+        glm::vec3 p2(vertices[index_1]);
+        glm::vec3 p3(vertices[index_2]);
 
         glm::vec2 tc1 = tex[index_0];
         glm::vec2 tc2 = tex[index_1];
@@ -377,7 +375,7 @@ void updateVertexTangents(glm::vec4* vertices, glm::vec3* normals, glm::vec4* ta
  * @param tex the texture coordinates
  * @warning tangents will be overwritten
  */
-void updateVertexTangents(glm::vec4* vertices, glm::vec3* normals, glm::vec4* tangents, int numvertices, int numindices,  const GLuint* indices, glm::vec2* tex) {
+void updateVertexTangents(const glm::vec4* vertices, const glm::vec3* normals, glm::vec4* tangents, int numvertices, int numindices,  const GLuint* indices, const glm::vec2* tex) {
 
     glm::vec3* tan1 = (glm::vec3*)malloc(sizeof(glm::vec3) * numindices);
     glm::vec3* tan2 = (glm::vec3*)malloc(sizeof(glm::vec3) * numindices);
@@ -394,9 +392,9 @@ void updateVertexTangents(glm::vec4* vertices, glm::vec3* normals, glm::vec4* ta
         int index_1 = indices[i + 1];
         int index_2 = indices[i + 2];
 
-        glm::vec3 p1 = glm::vec3(vertices[index_0]);
-        glm::vec3 p2 = glm::vec3(vertices[index_1]);
-        glm::vec3 p3 = glm::vec3(vertices[index_2]);
+        glm::vec3 p1(vertices[index_0]);
+        glm::vec3 p2(vertices[index_1]);
+        glm::vec3 p3(vertices[index_2]);
 
         glm::vec2 tc1 = tex[index_0];
         glm::vec2 tc2 = tex[index_1];
@@ -446,10 +444,13 @@ void updateVertexTangents(glm::vec4* vertices, glm::vec3* normals, glm::vec4* ta
  * @param numIndices the number of indices
  * @warning the data in norms will be overridden
  */
-void updateVertexNormals(glm::vec3* vertices, glm::vec3* norms, const GLuint* indices,
+void updateVertexNormals(const glm::vec3* vertices, glm::vec3* norms, const GLuint* indices,
                          GLuint numNormals, GLuint numIndices) {
 
-    glm::vec3 p1, p2, p3, n;
+    glm::vec3 p1;
+    glm::vec3 p2;
+    glm::vec3 p3;
+    glm::vec3 n;
 
     for (int i = 0; i < numNormals; i++) {
         norms[i] = glm::vec3(0.0, 0.0, 0.0);
@@ -482,7 +483,12 @@ void updateVertexNormals(glm::vec3* vertices, glm::vec3* norms, const GLuint* in
 void unitizeModel(glm::vec3 vertices[], GLuint numVertices) {
     // Step 1: Compute the maximum and minimum of x, y, and z
     // coordinates of the model’s vertices.
-    float min_x, max_x, min_y, max_y, min_z, max_z;
+    float min_x;
+    float max_x;
+    float min_y;
+    float max_y;
+    float min_z;
+    float max_z;
     min_x = max_x = vertices[0].x;
     min_y = max_y = vertices[0].y;
     min_z = max_z = vertices[0].z;
