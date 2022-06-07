@@ -51,6 +51,12 @@ GLFWwindow* window;
 // Bool to know when to exit
 bool exitWindowFlag = false;
 
+// initial screen size
+int screenWidth = 512, screenHeight = 512;
+
+// Current screen size
+GLint glScreenWidth, glScreenHeight;
+
 // title info
 #define TITLE_LENGTH 100
 
@@ -397,8 +403,10 @@ void keyboard() {
  * @param height the new height
  */
 void windowSizeChangeCallback([[maybe_unused]] GLFWwindow* thisWindow, int width, int height) {
-    glViewport(0, 0, width, height);
-    aspect = float(width) / float(height);
+    glScreenHeight = height;
+    glScreenWidth = width;
+    glViewport(0, 0, glScreenWidth, glScreenHeight);
+    aspect = float(glScreenWidth) / float(glScreenHeight);
 }
 
 /**
@@ -451,7 +459,7 @@ int main() {
     fprintf(stdout, "Info: Open a window and create its OpenGL context\n");
     char orginal_title[TITLE_LENGTH];
     strcpy(orginal_title, "GLFW - OpenGL - Basic");
-    window = glfwCreateWindow(512, 512, orginal_title, nullptr, nullptr);
+    window = glfwCreateWindow(screenWidth, screenHeight, orginal_title, nullptr, nullptr);
     if (window == nullptr) {
         fprintf(stderr,"Error: Failed to open GLFW window\n");
         glfwTerminate();
@@ -462,9 +470,13 @@ int main() {
     // resize
     fprintf(stdout, "Info: Setup resize (size change callback)\n");
     glfwSetWindowSizeCallback(window, windowSizeChangeCallback);
-    int width, height;
-    glfwGetWindowSize(window, &width, &height);
-    windowSizeChangeCallback(window, width, height);
+    glfwGetWindowSize(window, &glScreenWidth, &glScreenHeight);
+    // use so it knows the screen size the system wants
+    // (for example when using high-res (4k) screen the system will likely want
+    // double the size (Hi-DPI) to make it possible to see for the user)
+    screenWidth = glScreenWidth;
+    screenHeight = glScreenHeight;
+    windowSizeChangeCallback(window, glScreenWidth, glScreenHeight);
 
     // icon
     fprintf(stdout, "Info: Setup icon for the window\n");
