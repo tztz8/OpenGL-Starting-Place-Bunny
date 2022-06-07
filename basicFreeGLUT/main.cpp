@@ -43,6 +43,7 @@ int screenWidth = 512, screenHeight = 512;
 // Current screen size
 GLint glScreenWidth, glScreenHeight;
 
+// flag to know when screen size changes
 bool freeGLUTSizeUpdate;
 
 // devIL is setup flag

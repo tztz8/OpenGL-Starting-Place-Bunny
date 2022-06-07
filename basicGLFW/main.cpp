@@ -57,6 +57,9 @@ int screenWidth = 512, screenHeight = 512;
 // Current screen size
 GLint glScreenWidth, glScreenHeight;
 
+// flag to know when screen size changes
+bool freeGLUTSizeUpdate;
+
 // title info
 #define TITLE_LENGTH 100
 
@@ -257,6 +260,10 @@ void Initialize(){
  */
 void Display() {
     // Clear
+    if (freeGLUTSizeUpdate) {
+        glViewport(0, 0, glScreenWidth, glScreenHeight);
+        freeGLUTSizeUpdate = false;
+    }
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LEQUAL);
@@ -405,7 +412,7 @@ void keyboard() {
 void windowSizeChangeCallback([[maybe_unused]] GLFWwindow* thisWindow, int width, int height) {
     glScreenHeight = height;
     glScreenWidth = width;
-    glViewport(0, 0, glScreenWidth, glScreenHeight);
+    freeGLUTSizeUpdate = true;
     aspect = float(glScreenWidth) / float(glScreenHeight);
 }
 
