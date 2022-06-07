@@ -68,7 +68,7 @@ bool devILIsSetup = false; // DO NOT CHANGE
  * Aspect ratio <br>
  * Proportion between the width and the height of the window
  */
-GLfloat aspect = 0.0;
+GLfloat aspect = float(screenWidth) / float(screenHeight);
 
 // Booleans for current state
 /**

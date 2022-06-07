@@ -149,6 +149,29 @@ GLuint initShaders(const char* v_shader, const char* f_shader) {
 }
 
 /**
+ * Generates a texture that is suited for attachments to a framebuffer
+ * @note code from Yasmin and commit and some modification make by Timbre Freeman
+ */
+GLuint generateAttachmentTexture()
+{
+    // What enum to use?
+    GLenum attachment_type = GL_RGB;
+
+    //Generate texture ID and load texture data
+    GLuint textureID;
+    glGenTextures(1, &textureID);
+    glBindTexture(GL_TEXTURE_2D, textureID);
+
+    glTexImage2D(GL_TEXTURE_2D, 0, attachment_type, screenWidth, screenHeight, 0, attachment_type, GL_UNSIGNED_BYTE, nullptr);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+    return textureID;
+}
+
+/**
  * Load Texture
  * @note code from Yasmin and commit and some modification make by Timbre Freeman
  * @note (used devil to load the image)

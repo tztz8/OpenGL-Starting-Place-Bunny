@@ -37,6 +37,14 @@
 
 //          --- Filled's ---
 
+// initial screen size
+int screenWidth = 512, screenHeight = 512;
+
+// Current screen size
+GLint glScreenWidth, glScreenHeight;
+
+bool freeGLUTSizeUpdate;
+
 // devIL is setup flag
 bool devILIsSetup = false; // DO NOT CHANGE
 
@@ -45,7 +53,7 @@ bool devILIsSetup = false; // DO NOT CHANGE
  * Aspect ratio <br>
  * Proportion between the width and the height of the window
  */
-GLfloat aspect = 0.0;
+GLfloat aspect = float(screenWidth) / float(screenHeight);
 
 // Booleans for current state
 /**
@@ -231,6 +239,10 @@ void Initialize(){
 void Display()
 {
     // Clear
+    if (freeGLUTSizeUpdate) {
+        glViewport(0, 0, glScreenWidth, glScreenHeight);
+        freeGLUTSizeUpdate = false;
+    }
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LEQUAL);
@@ -322,7 +334,7 @@ void keyboard(unsigned char key, [[maybe_unused]] int x, [[maybe_unused]] int y)
 
     switch (key){
         case 'q':case 'Q':
-            exit(EXIT_SUCCESS);
+            glutLeaveMainLoop();
             break;
         case 's':
             show_line = !show_line;
@@ -343,7 +355,9 @@ void keyboard(unsigned char key, [[maybe_unused]] int x, [[maybe_unused]] int y)
         default: ;
             // Do nothing
     }
-    glutPostRedisplay();
+    if (glutGetWindow()) {
+        glutPostRedisplay();
+    }
 }
 
 /**
@@ -352,8 +366,10 @@ void keyboard(unsigned char key, [[maybe_unused]] int x, [[maybe_unused]] int y)
  * @param height the new height of the window
  */
 void Reshape(int width, int height) {
-    glViewport(0, 0, width, height);
-    aspect = float(width) / float(height);
+    glScreenHeight = height;
+    glScreenWidth = width;
+    freeGLUTSizeUpdate = true;
+    aspect = float(glScreenWidth) / float(glScreenHeight);
     glutPostRedisplay();
 }
 

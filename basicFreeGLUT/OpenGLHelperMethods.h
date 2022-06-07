@@ -36,6 +36,12 @@ char* ReadFile(const char* filename);
 GLuint initShaders(const char* v_shader, const char* f_shader);
 
 /**
+ * Generates a texture that is suited for attachments to a framebuffer
+ * @note code from Yasmin and commit and some modification make by Timbre Freeman
+ */
+GLuint generateAttachmentTexture();
+
+/**
  * Load Texture
  * @note code from Yasmin and commit and some modification make by Timbre Freeman
  * @note (used devil to load the image)
