@@ -1,13 +1,16 @@
 #version 400
 
+// from our vert shader
 in vec4 Position;
 in vec3 Normal;
 in vec2 TexCoord;
 
+// from our program
 uniform vec4 LightPosition;// Light position in eye coords.
 
 uniform sampler2D Tex1;
 
+// to our gpu
 out vec4 color;
 
 void main() {

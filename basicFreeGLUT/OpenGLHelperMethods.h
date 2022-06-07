@@ -72,7 +72,7 @@ unsigned int loadCubeMapTexture(
 /**
  * Get the tangents from the vertices, normals, texture and indices
  * @note code from Yasmin and commit and some modification make by Timbre Freeman
- * @param vertices the vertices
+ * @param vertices the vertices (points)
  * @param normals the normals
  * @param tangents the tangents (warning tangents will be overwritten)
  * @param numvertices the number of vertices
@@ -86,7 +86,7 @@ void updateVertexTangents(const glm::vec4* vertices, const glm::vec3* normals, g
 /**
  * Get the tangents from the vertices, normals, texture and indices
  * @note code from Yasmin and commit and some modification make by Timbre Freeman
- * @param vertices the vertices
+ * @param vertices the vertices (points)
  * @param normals the normals
  * @param tangents the tangents (warning tangents will be overwritten)
  * @param numvertices the number of vertices
@@ -99,7 +99,7 @@ void updateVertexTangents(const glm::vec4* vertices, const glm::vec3* normals, g
 
 /**
  * Update All The Vertex Normals
- * @param vertices the vertices used to cal the norms
+ * @param vertices the vertices used to cal the norms (points)
  * @param norms the norms that will be updated (WARNING the data will be overridden)
  * @param indices to know which vertices used to cal the norms
  * @param numNormals the number of normals
@@ -111,7 +111,7 @@ void updateVertexNormals(const glm::vec3* vertices, glm::vec3* norms, const GLui
 
 /**
  * Center and make the model fit in a -1 to 1 box
- * @param vertices the vertices to update
+ * @param vertices the vertices to update (points)
  * @param numVertices the number of vertices
  * @warning the data in vertices will be overridden
  */
