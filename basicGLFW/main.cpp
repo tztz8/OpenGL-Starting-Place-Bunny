@@ -372,46 +372,92 @@ std::map<char, bool> keyPressed;
  */
 std::map<char, bool> keyCurrentlyPressed;
 
+std::map<char, std::string> keyDescription;
+
+/**
+ * if the program is set to fullscreen
+ */
+bool isFullScreen = false; // do not change // look at main to make it full screen
+
+void setFullScreen(bool isFullScreenIn);
+
 /**
  * On each frame it check for user input to toggle a flag
  */
-void keyboard() {
-    keyCurrentlyPressed['q'] = glfwGetKey(window, GLFW_KEY_Q ) == GLFW_PRESS;
-    if (!keyPressed['q'] && keyCurrentlyPressed['q']) {
+void keyboard(bool setDiscrption) {
+    if (setDiscrption) keyDescription['q'] = "Quit program";
+    if (checkKey('q', GLFW_KEY_Q)) {
         tellWindowToClose();
     }
-    keyPressed['q'] = keyCurrentlyPressed['q'];
 
-    keyCurrentlyPressed['s'] = glfwGetKey(window, GLFW_KEY_S ) == GLFW_PRESS;
-    if (!keyPressed['s'] && keyCurrentlyPressed['s']) {
+    bool sKey = checkKey('s', GLFW_KEY_S);
+    bool shiftKeys = checkKey('S', GLFW_KEY_LEFT_SHIFT) || checkKey('S', GLFW_KEY_RIGHT_SHIFT);
+    if (setDiscrption) keyDescription['s'] = "Show line view";
+    if (sKey && !shiftKeys) {
         show_line = !show_line;
     }
-    keyPressed['s'] = keyCurrentlyPressed['s'];
-
-    keyCurrentlyPressed['S'] =
-            keyCurrentlyPressed['s'] && // glfwGetKey(window, GLFW_KEY_S ) == GLFW_PRESS
-            (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS ||
-             glfwGetKey(window, GLFW_KEY_RIGHT_SHIFT) == GLFW_PRESS);
-    if (!keyPressed['S'] && keyCurrentlyPressed['S']) {
+    if (setDiscrption) keyDescription['S'] = "(SHIFT S) Show Line view but let the gpu hide hidden lines";
+    if (sKey && shiftKeys) {
         show_line_new = !show_line_new;
-        // NOTE that s was press, so it also toggles the show_line flag above
     }
-    keyPressed['S'] = keyCurrentlyPressed['S'];
 
-    keyCurrentlyPressed['u'] = glfwGetKey(window, GLFW_KEY_U ) == GLFW_PRESS;
-    keyCurrentlyPressed['t'] = glfwGetKey(window, GLFW_KEY_T ) == GLFW_PRESS;
-    if ((!keyPressed['t'] && keyCurrentlyPressed['t']) ||
-        (!keyPressed['u'] && keyCurrentlyPressed['u'])) {
+    if (setDiscrption) keyDescription['u'] = "Top view";
+    if (setDiscrption) keyDescription['t'] = "Top view";
+    if (checkKey('t', GLFW_KEY_T) || checkKey('u', GLFW_KEY_U)) {
         top_view_flag = !top_view_flag;
     }
-    keyPressed['t'] = keyCurrentlyPressed['t'];
-    keyPressed['u'] = keyCurrentlyPressed['u'];
 
-    keyCurrentlyPressed['r'] = glfwGetKey(window, GLFW_KEY_R ) == GLFW_PRESS;
-    if (!keyPressed['r'] && keyCurrentlyPressed['r']) {
+    if (setDiscrption) keyDescription['r'] = "Rotate of camera";
+    if (checkKey('r', GLFW_KEY_R)) {
         stop_rotate = !stop_rotate;
     }
-    keyPressed['r'] = keyCurrentlyPressed['r'];
+
+    if (setDiscrption) keyDescription['F'] = "(F11) Full Screen";
+    if (checkKey('F', GLFW_KEY_F11)) {
+        setFullScreen(!isFullScreen);
+    }
+}
+
+/**
+ * check if key was press <br>
+ * will only return true ones intel key not press on next check <br>
+ * usefully for toggle things like show lines flag
+ * @param key char often the key to store the state
+ * @param GLFW_key the key that glfw recognise
+ * @return false if still being press or not being press
+ */
+bool checkKey(char key, int GLFW_key) {
+    bool returnValue;
+    keyCurrentlyPressed[key] = glfwGetKey(window, GLFW_key ) == GLFW_PRESS;
+    returnValue = (!keyPressed[key] && keyCurrentlyPressed[key]);
+    keyPressed[key] = keyCurrentlyPressed[key];
+    return returnValue;
+}
+
+/**
+ * check window to be fullscreen
+ * @param isFullScreenIn the state want
+ */
+void setFullScreen(bool isFullScreenIn) {
+    if (isFullScreen == isFullScreenIn) {
+        return;
+    }
+    if (!isFullScreenIn) {
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+        glfwSetWindowMonitor( window, nullptr,  0, 0, screenWidth, screenHeight, 0 );
+        isFullScreen = false;
+    } else {
+        if (glfwGetWindowMonitor(window) == nullptr) {
+            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+            GLFWmonitor* _monitor = glfwGetPrimaryMonitor();
+            // get resolution of monitor
+            const GLFWvidmode * mode = glfwGetVideoMode(_monitor);
+
+            // switch to full screen
+            glfwSetWindowMonitor( window, _monitor, 0, 0, mode->width, mode->height, 0 );
+            isFullScreen = true;
+        }
+    }
 }
 
 /**
@@ -497,6 +543,12 @@ int main() {
     screenHeight = glScreenHeight;
     windowSizeChangeCallback(window, glScreenWidth, glScreenHeight);
 
+    // fullscreen
+    bool makeFullScreen = false;
+    if (makeFullScreen) {
+        setFullScreen(true);
+    }
+
     // icon
     fprintf(stdout, "Info: Setup icon for the window\n");
     GLFWimage icons[1];
@@ -554,13 +606,13 @@ int main() {
     // List Keys being used
     fprintf(stdout, "Info: Current keys being used\n");
     // called to set the keys in keyboard map
-    keyboard();
+    keyboard(true);
     // Go throw the map and print each key being used
-    for (std::pair<const char, bool> node: keyPressed) {
+    for (std::pair<const char, std::string> node: keyDescription) {
         if (isupper(node.first)) { // Use uppercase for normally Special cases like using shift or up arrow
-            fprintf(stdout, "Info:      - Special Key: %c\n", node.first);
+            fprintf(stdout, "Info:      - Special Key: %c : Description: %s\n", node.first, node.second.c_str());
         } else {
-            fprintf(stdout, "Info:      -         Key: %c\n", node.first);
+            fprintf(stdout, "Info:      -         Key: %c : Description: %s\n", node.first, node.second.c_str());
         }
     }
 
@@ -623,7 +675,7 @@ int main() {
         exitWindowFlag = glfwGetKey(window, GLFW_KEY_ESCAPE ) == GLFW_PRESS || exitWindowFlag;
 
         // check for user input
-        keyboard();
+        keyboard(false);
 
         // update data (often angles of things)
         updateAngle(deltaTime);
