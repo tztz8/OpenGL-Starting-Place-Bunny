@@ -164,6 +164,19 @@ GLuint image2TexID;
 //          --- Methods ---
 
 /**
+ * Set all the gl uniform for currentProgram
+ * @param shaderProgram to set as the current shader program being used
+ */
+void setUniformLocations(GLuint shaderProgram) {
+    glUseProgram(shaderProgram);
+    view_matrix_loc = glGetUniformLocation(shaderProgram, "view_matrix");
+    matrix_loc = glGetUniformLocation(shaderProgram, "model_matrix");
+    projection_matrix_loc = glGetUniformLocation(shaderProgram, "projection_matrix");
+    light_position_loc = glGetUniformLocation(shaderProgram, "LightPosition");
+    glUniform1i(glGetUniformLocation(shaderProgram, "Tex1"), 0);
+}
+
+/**
  * Called set setup open gl things (for example making the models)
  */
 void Initialize(){
@@ -184,24 +197,23 @@ void Initialize(){
     }
 
     // Create the program for rendering the model
-    program = initShaders("shader.vert", "shader.frag");
+//    program = initShaders("shader.vert", "shader.frag");
+    // or
+    const char* s[] = {"shader.vert", "shader.frag"};
+    program = initShaders(s, 2);
 
     // Check if making the shader work or not // This is not in FreeGLUT as does need an exit flag
     if (exitWindowFlag) {
         return;
     }
 
-    // Use the shader program
-    glUseProgram(program);
-
     // attribute indices
     model_matrix = glm::mat4(1.0f);
-    view_matrix_loc = glGetUniformLocation(program, "view_matrix");
-    matrix_loc = glGetUniformLocation(program, "model_matrix");
-    projection_matrix_loc = glGetUniformLocation(program, "projection_matrix");
-    light_position_loc = glGetUniformLocation(program, "LightPosition");
-    glUniform1i(glGetUniformLocation(program, "Tex1"), 0);
 
+    // Use the shader program
+    setUniformLocations(program);
+
+    // load textures
     imageTexID = loadTexture("res/3D_pattern_58/pattern_290/diffuse.tga");
     image2TexID = loadTexture("res/3D_pattern_58/pattern_292/diffuse.tga");
 

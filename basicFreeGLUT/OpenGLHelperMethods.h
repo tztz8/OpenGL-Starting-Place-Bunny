@@ -29,6 +29,19 @@ char* ReadFile(const char* filename);
 /**
  * Initialize Shaders
  * @note code from Yasmin and commit and some modification make by Timbre Freeman
+ * @param s paths (as char strings) of the shader files, in this order <br>
+ *          - Vertex <br>
+ *          - Fragment <br>
+ *          - Geometry <br>
+ * @param count number of shader files
+ * @warning if count is above 3 it will exit
+ * @return shader program
+ */
+GLuint initShaders(const char* s[], int count);
+
+/**
+ * Initialize Shaders
+ * @note code from Yasmin and commit and some modification make by Timbre Freeman
  * @param v_shader the vertex shader path
  * @param f_shader the fragment shader path
  * @return a gl program object
@@ -107,6 +120,18 @@ void updateVertexTangents(const glm::vec4* vertices, const glm::vec3* normals, g
  * @warning the data in norms will be overridden
  */
 void updateVertexNormals(const glm::vec3* vertices, glm::vec3* norms, const GLuint* indices,
+                         GLuint numNormals, GLuint numIndices);
+
+/**
+ * Update All The Vertex Normals
+ * @param vertices the vertices used to cal the norms (points)
+ * @param norms the norms that will be updated (WARNING the data will be overridden)
+ * @param indices to know which vertices used to cal the norms
+ * @param numNormals the number of normals
+ * @param numIndices the number of indices
+ * @warning the data in norms will be overridden
+ */
+void updateVertexNormals(const glm::vec3* vertices, glm::vec3* norms, const GLushort* indices,
                          GLuint numNormals, GLuint numIndices);
 
 /**

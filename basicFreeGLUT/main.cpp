@@ -148,6 +148,19 @@ GLuint image2TexID;
 //          --- Methods ---
 
 /**
+ * Set all the gl uniform for currentProgram
+ * @param shaderProgram to set as the current shader program being used
+ */
+void setUniformLocations(GLuint shaderProgram) {
+    glUseProgram(shaderProgram);
+    view_matrix_loc = glGetUniformLocation(shaderProgram, "view_matrix");
+    matrix_loc = glGetUniformLocation(shaderProgram, "model_matrix");
+    projection_matrix_loc = glGetUniformLocation(shaderProgram, "projection_matrix");
+    light_position_loc = glGetUniformLocation(shaderProgram, "LightPosition");
+    glUniform1i(glGetUniformLocation(shaderProgram, "Tex1"), 0);
+}
+
+/**
  * Called set setup open gl things (for example making the models)
  */
 void Initialize(){
@@ -168,19 +181,18 @@ void Initialize(){
     }
 
     // Create the program for rendering the model
-    program = initShaders("shader.vert", "shader.frag");
-
-    // Use the shader program
-    glUseProgram(program);
+//    program = initShaders("shader.vert", "shader.frag");
+    // or
+    const char* s[] = {"shader.vert", "shader.frag"};
+    program = initShaders(s, 2);
 
     // attribute indices
     model_matrix = glm::mat4(1.0f);
-    view_matrix_loc = glGetUniformLocation(program, "view_matrix");
-    matrix_loc = glGetUniformLocation(program, "model_matrix");
-    projection_matrix_loc = glGetUniformLocation(program, "projection_matrix");
-    light_position_loc = glGetUniformLocation(program, "LightPosition");
-    glUniform1i(glGetUniformLocation(program, "Tex1"), 0);
 
+    // Use the shader program
+    setUniformLocations(program);
+
+    // load textures
     imageTexID = loadTexture("res/3D_pattern_58/pattern_290/diffuse.tga");
     image2TexID = loadTexture("res/3D_pattern_58/pattern_292/diffuse.tga");
 
@@ -375,10 +387,10 @@ void Reshape(int width, int height) {
 }
 
 /**
- * Default method to use with glutTimerFunc to update things often rotate
+ * Default method to use with glutTimerFunc to update things often rotates
  * @param n witch thing we are updating
  */
-void rotate(int n) {
+void timerCallBack(int n) {
     switch (n) {
         case 1:
             if (!stop_rotate) {
@@ -387,7 +399,7 @@ void rotate(int n) {
 
             glutPostRedisplay(); // Redraw the screen
             // restart timer
-            glutTimerFunc(100, rotate, 1); // update forever (not just ones)
+            glutTimerFunc(100, timerCallBack, 1); // update forever (not just ones)
             break;
         default: ;
             // do nothing
@@ -457,8 +469,8 @@ int main(int argc, char** argv){
     glutKeyboardFunc(keyboard); // Tell glut our keyboard method
     fprintf(stdout, "Info: GLUT Set reshape func\n");
     glutReshapeFunc(Reshape); // Tell glut our reshape method
-    fprintf(stdout, "Info: GLUT Set rotate func (rotateAngle)\n");
-    glutTimerFunc(100, rotate, 1); // First timer for rotate camera
+    fprintf(stdout, "Info: GLUT Set timerCallBack func (rotateAngle)\n");
+    glutTimerFunc(100, timerCallBack, 1); // First timer for rotate camera
     fprintf(stdout, "Info: GLUT Load Main Loop\n");
     glutMainLoop(); // Start glut infinite loop
 

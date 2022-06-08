@@ -51,6 +51,97 @@ char* ReadFile(const char* filename) {
 /**
  * Initialize Shaders
  * @note code from Yasmin and commit and some modification make by Timbre Freeman
+ * @param s paths (as char strings) of the shader files, in this order <br>
+ *          - Vertex <br>
+ *          - Fragment <br>
+ *          - Geometry <br>
+ * @param count number of shader files
+ * @warning if count is above 3 it will exit
+ * @return shader program
+ */
+GLuint initShaders(const char* s[], int count) {
+
+    GLuint p = glCreateProgram();
+    int i = 0;
+    GLuint v;
+    std::string shaderType;
+
+    while (i < count) {
+        if (i == 0) {
+            v = glCreateShader(GL_VERTEX_SHADER);
+            shaderType = "Vertex";
+        } else if (i == 1) {
+            v = glCreateShader(GL_FRAGMENT_SHADER);
+            shaderType = "Fragment";
+        } else if (i == 2) {
+            v = glCreateShader(GL_GEOMETRY_SHADER);
+            shaderType = "Geometry";
+        } else {
+            fprintf(stderr, "Error: initShaders: unknown shader pass in\n");
+            fprintf(stderr, "Error: initShaders: Exiting\n");
+            exit(EXIT_FAILURE);
+        }
+
+        const char* vs = ReadFile(s[i]);
+        glShaderSource(v, 1, &vs, NULL);
+        free((char*)vs);
+        glCompileShader(v);
+        GLint compiled;
+
+        glGetShaderiv(v, GL_COMPILE_STATUS, &compiled);
+        if (!compiled) {
+            GLsizei len;
+            glGetShaderiv(v, GL_INFO_LOG_LENGTH, &len);
+
+            char* log = (char*)malloc(len + 1);
+
+            if (log == nullptr) {
+                fprintf(stderr, "Error: initShaders: Was not able to get memory to get error code for compiled shader\n");
+                exit(EXIT_FAILURE);
+            }
+
+            glGetShaderInfoLog(v, len, &len, log);
+
+            fprintf(stderr, "Error: initShaders: %s Shader compilation failed: %s\n", shaderType.c_str(), log);
+
+            free(log);
+        } else {
+            fprintf(stdout, "Info: initShaders: %s shader complied\n", shaderType.c_str());
+        }
+
+        glAttachShader(p, v);
+
+        i++;
+    }
+
+    glLinkProgram(p);
+
+    GLint linked;
+    glGetProgramiv(p, GL_LINK_STATUS, &linked);
+    if (!linked) {
+        GLsizei len;
+        glGetProgramiv(p, GL_INFO_LOG_LENGTH, &len);
+        char* log = (char*)malloc(len + 1);
+
+        if (log == nullptr) {
+            fprintf(stderr, "Error: initShaders: Was not able to get memory to get error code for compiled shader\n");
+            exit(EXIT_FAILURE);
+        }
+
+        glGetProgramInfoLog(p, len, &len, log);
+        fprintf(stderr, "Error: initShaders: Shader linking failed: %s\n", log);
+        free(log);
+    } else {
+        fprintf(stdout, "Info: initShaders: shader's linked\n");
+    }
+    glUseProgram(p);
+    return p;
+
+}
+
+/**
+ * Initialize Shaders
+ * @note code from Yasmin and commit and some modification make by Timbre Freeman
  * @param v_shader the vertex shader path
  * @param f_shader the fragment shader path
  * @return a gl program object
@@ -468,6 +559,45 @@ void updateVertexTangents(const glm::vec4* vertices, const glm::vec3* normals, g
  * @warning the data in norms will be overridden
  */
 void updateVertexNormals(const glm::vec3* vertices, glm::vec3* norms, const GLuint* indices,
+                         GLuint numNormals, GLuint numIndices) {
+
+    glm::vec3 p1;
+    glm::vec3 p2;
+    glm::vec3 p3;
+    glm::vec3 n;
+
+    for (int i = 0; i < numNormals; i++) {
+        norms[i] = glm::vec3(0.0, 0.0, 0.0);
+    }
+
+    for (int index = 0; index < numIndices; index+=3) {
+
+        p1 = vertices[indices[index + 0]];
+        p2 = vertices[indices[index + 1]];
+        p3 = vertices[indices[index + 2]];
+
+        n = glm::normalize(cross((p2 - p1), (p3 - p1)));
+
+        norms[indices[index + 0]] += n;
+        norms[indices[index + 1]] += n;
+        norms[indices[index + 2]] += n;
+    }
+
+    for (int i = 0; i < numNormals; i++) {
+        norms[i] = glm::normalize(norms[i]);
+    }
+}
+
+/**
+ * Update All The Vertex Normals
+ * @param vertices the vertices used to cal the norms
+ * @param norms the norms that will be updated (WARNING the data will be overridden)
+ * @param indices to know which vertices used to cal the norms
+ * @param numNormals the number of normals
+ * @param numIndices the number of indices
+ * @warning the data in norms will be overridden
+ */
+void updateVertexNormals(const glm::vec3* vertices, glm::vec3* norms, const GLushort* indices,
                          GLuint numNormals, GLuint numIndices) {
 
     glm::vec3 p1;
