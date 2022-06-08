@@ -26,4 +26,10 @@ void tellWindowToClose();
  */
 bool checkKey(char key, int GLFW_key);
 
+/**
+ * check window to be fullscreen
+ * @param isFullScreenIn the state want
+ */
+void setFullScreen(bool isFullScreenIn);
+
 #endif //OPENGL_STARTING_PLACE_BUNNY_MAIN_H

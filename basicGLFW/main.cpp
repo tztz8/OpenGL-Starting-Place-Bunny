@@ -51,6 +51,11 @@ GLFWwindow* window;
 // Bool to know when to exit
 bool exitWindowFlag = false;
 
+/**
+ * if the program is set to fullscreen
+ */
+bool isFullScreen = false; // do not change // look at main to make it full screen
+
 // initial screen size
 int screenWidth = 512, screenHeight = 512;
 
@@ -358,28 +363,26 @@ void Display() {
 // ------------------ This is where the code between GLFW and FreeGLUT are Different ---------------------------
 
 /**
- * key was pressed on last frame <br>
- *  - Key is char <br>
- *  - Value is bool
+ * keyboard key was pressed on last frame <br>
+ *  - Map Key is char for the keyboard key being used <br>
+ *  - Value is bool was pressed on last frame
  * @note when key is uppercase it use for normally Special cases like using shift or up arrow
  */
 std::map<char, bool> keyPressed;
 /**
- * key is pressed this frame <br>
- *  - Key is char <br>
- *  - Value is bool
+ * keyboard key is pressed this frame <br>
+ *  - Map Key is char for the keyboard key being used <br>
+ *  - Map Value is bool is pressed this frame
  * @note when key is uppercase it use for normally Special cases like using shift or up arrow
  */
 std::map<char, bool> keyCurrentlyPressed;
-
-std::map<char, std::string> keyDescription;
-
 /**
- * if the program is set to fullscreen
+ * description on what the keyboard key used for <br>
+ *  - Map Key is char for the keyboard key being used <br>
+ *  - Map Value is std::string for the description
+ * @note when key is uppercase it use for normally Special cases like using shift or up arrow
  */
-bool isFullScreen = false; // do not change // look at main to make it full screen
-
-void setFullScreen(bool isFullScreenIn);
+std::map<char, std::string> keyDescription;
 
 /**
  * On each frame it check for user input to toggle a flag
@@ -443,12 +446,14 @@ void setFullScreen(bool isFullScreenIn) {
         return;
     }
     if (!isFullScreenIn) {
-        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+        // auto unhide cursor when leaving full screen
+        //glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
         glfwSetWindowMonitor( window, nullptr,  0, 0, screenWidth, screenHeight, 0 );
         isFullScreen = false;
     } else {
         if (glfwGetWindowMonitor(window) == nullptr) {
-            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+            // auto hide cursor when full screen
+            //glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
             GLFWmonitor* _monitor = glfwGetPrimaryMonitor();
             // get resolution of monitor
             const GLFWvidmode * mode = glfwGetVideoMode(_monitor);
