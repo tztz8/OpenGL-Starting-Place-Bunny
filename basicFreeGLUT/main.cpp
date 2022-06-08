@@ -338,6 +338,21 @@ void Display()
 // ------------------ This is where the code between GLFW and FreeGLUT are Vary Different ---------------------------
 
 /**
+ * called when key on the keyboard is pressed (that not in char)
+ * @param key the key being pressed (GLUT type)
+ * @param x x of "mouse location in window relative coordinates when the key was pressed"
+ * @param y y of "mouse location in window relative coordinates when the key was pressed"
+ */
+void specialKeyboard(int key, [[maybe_unused]] int x, [[maybe_unused]] int y) {
+    switch (key) {
+        case GLUT_KEY_F11:
+            glutFullScreenToggle();
+            break;
+    }
+    glutPostRedisplay();
+}
+
+/**
  * called when key on the keyboard is pressed
  * @param key the key being pressed
  * @param x x of "mouse location in window relative coordinates when the key was pressed"
@@ -346,7 +361,7 @@ void Display()
 void keyboard(unsigned char key, [[maybe_unused]] int x, [[maybe_unused]] int y){
 
     switch (key){
-        case 'q':case 'Q':
+        case 'q':case 'Q':case 27: // esc
             glutLeaveMainLoop();
             break;
         case 's':
@@ -467,8 +482,12 @@ int main(int argc, char** argv){
     glutDisplayFunc(Display); // Tell glut our display method
     fprintf(stdout, "Info: GLUT Set keyboard func\n");
     glutKeyboardFunc(keyboard); // Tell glut our keyboard method
+    fprintf(stdout, "Info: GLUT Set Special keyboard func\n");
+    glutSpecialFunc(specialKeyboard); // Tell glut our keyboard method for keys that are not in char
     fprintf(stdout, "Info: GLUT Set reshape func\n");
     glutReshapeFunc(Reshape); // Tell glut our reshape method
+    glScreenWidth = screenWidth;
+    glScreenHeight = screenHeight;
     fprintf(stdout, "Info: GLUT Set timerCallBack func (rotateAngle)\n");
     glutTimerFunc(100, timerCallBack, 1); // First timer for rotate camera
     fprintf(stdout, "Info: GLUT Load Main Loop\n");
